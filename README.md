@@ -6,6 +6,8 @@ Turn open Kalshi Events for the topics you follow into an RSS 2.0 feed.
 
 Uses Kalshi's public API. No Kalshi account or API key is required.
 
+Live: [rss.motoish.dev](https://rss.motoish.dev) · [feed.xml](https://rss.motoish.dev/feed.xml)
+
 ## Quick start
 
 Requires Python 3.12+ and [uv](https://docs.astral.sh/uv/).
@@ -22,15 +24,9 @@ uv run python kalshi_rss.py
 
 The script writes `feed.xml` to the project root.
 
-Upload it to KV (remote = production; omit `--remote` for local Wrangler KV):
-
-```bash
-uv run pywrangler kv key put feed.xml --path=feed.xml --binding=RSS_KV --remote
-```
-
 ## Configuration
 
-`series_tickers` and `keywords` are two **mutually exclusive** ways to choose which Series to read. They are not combined.
+`series_tickers` takes precedence. `keywords` is used only when `series_tickers` is empty or omitted.
 
 ```json
 {
@@ -87,6 +83,39 @@ uv run pywrangler dev
 Open <http://localhost:8787/> for the web preview, or <http://localhost:8787/feed.xml> for the raw RSS.
 
 Do not open the page with `file://`; the browser cannot read `/feed.xml` that way.
+
+## Deployment and automatic refresh
+
+The included `wrangler.jsonc` targets this project's Cloudflare account. Before deploying a fork, update:
+
+- `account_id` and `kv_namespaces[].id`
+- `routes[].pattern`, or remove the custom route
+- `vars.GITHUB_REPO` and, if needed, `GITHUB_WORKFLOW` or `GITHUB_REF`
+
+After authenticating Wrangler locally, deploy the Worker and add a `GITHUB_TOKEN` Worker secret with permission to dispatch the configured GitHub Actions workflow:
+
+```bash
+uv run pywrangler deploy
+uv run pywrangler secret put GITHUB_TOKEN
+```
+
+For GitHub Actions deployments and feed uploads, add `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` as repository secrets. Pushing to `main` runs the deployment workflow; the refresh workflow is dispatched by Cloudflare Cron.
+
+The feed refreshes twice per hour:
+
+```text
+Cloudflare Cron (:07 / :37 UTC)
+→ dispatch refresh-feed.yml
+→ GitHub Actions generates feed.xml
+→ upload to Cloudflare KV
+```
+
+Cloudflare only schedules the refresh because its egress IPs are easily rate-limited by Kalshi. GitHub Actions performs the API requests. To refresh manually:
+
+```bash
+uv run python kalshi_rss.py
+uv run pywrangler kv key put feed.xml --path=feed.xml --binding=RSS_KV --remote
+```
 
 ## Tests
 

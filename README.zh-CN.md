@@ -24,15 +24,9 @@ uv run python kalshi_rss.py
 
 脚本会在项目根目录写出 `feed.xml`。
 
-上传到 KV（`--remote` 写生产；本地 Wrangler KV 去掉该参数）：
-
-```bash
-uv run pywrangler kv key put feed.xml --path=feed.xml --binding=RSS_KV --remote
-```
-
 ## 配置
 
-`series_tickers` 和 `keywords` 是两种 **互斥** 的 Series 选择方式，不会叠加使用。
+`series_tickers` 优先级更高。只有当它为空或未填写时，才会使用 `keywords`。
 
 ```json
 {
@@ -89,6 +83,39 @@ uv run pywrangler dev
 打开 <http://localhost:8787/> 查看网页预览，打开 <http://localhost:8787/feed.xml> 查看原始 RSS。
 
 不要用 `file://` 直接打开页面，浏览器无法读取 `/feed.xml`。
+
+## 部署与自动刷新
+
+仓库中的 `wrangler.jsonc` 指向本项目的 Cloudflare 账户。部署 Fork 前需要修改：
+
+- `account_id` 和 `kv_namespaces[].id`
+- `routes[].pattern`，或删除自定义域名配置
+- `vars.GITHUB_REPO`，必要时也修改 `GITHUB_WORKFLOW` 或 `GITHUB_REF`
+
+在本地完成 Wrangler 认证后，部署 Worker，并添加能够触发目标 GitHub Actions workflow 的 Worker Secret `GITHUB_TOKEN`：
+
+```bash
+uv run pywrangler deploy
+uv run pywrangler secret put GITHUB_TOKEN
+```
+
+GitHub Actions 部署和上传 Feed 需要仓库 Secret `CLOUDFLARE_API_TOKEN` 与 `CLOUDFLARE_ACCOUNT_ID`。推送到 `main` 会运行部署 workflow；刷新 workflow 则由 Cloudflare Cron 触发。
+
+Feed 每小时刷新两次：
+
+```text
+Cloudflare Cron（UTC :07 / :37）
+→ 触发 refresh-feed.yml
+→ GitHub Actions 生成 feed.xml
+→ 上传到 Cloudflare KV
+```
+
+Cloudflare 只负责定时触发，因为其出口 IP 容易被 Kalshi 限流；实际 API 请求由 GitHub Actions 发起。需要手动刷新时运行：
+
+```bash
+uv run python kalshi_rss.py
+uv run pywrangler kv key put feed.xml --path=feed.xml --binding=RSS_KV --remote
+```
 
 ## 测试
 
