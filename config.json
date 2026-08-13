@@ -1,0 +1,37 @@
+{
+  "api_url": "https://external-api.kalshi.com/trade-api/v2/markets",
+  "keywords": [
+    "BOJ",
+    "Bank of Japan",
+    "JPY",
+    "yen"
+  ],
+  "series_tickers": [
+    "KXBOJDECISION",
+    "KXCBDECISIONJAPAN",
+    "KXJPY",
+    "KXJPYINT",
+    "KXJPYQ",
+    "KXUSDJPY",
+    "KXUSDJPYAH",
+    "KXUSDJPYAW",
+    "KXUSDJPYD",
+    "KXUSDJPYE",
+    "KXUSDJPYEU",
+    "KXUSDJPYH",
+    "KXUSDJPYMAX",
+    "KXUSDJPYMIN",
+    "KXUSDJPYQ",
+    "KXUSDJPYW",
+    "JPY",
+    "USDJPY",
+    "USDJPYH",
+    "USDJPYMAX",
+    "USDJPYMIN"
+  ],
+  "channel_title": "Kalshi Watch",
+  "output": "feed.xml",
+  "timeout_seconds": 30,
+  "page_limit": 200,
+  "max_pages": 5
+}

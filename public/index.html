@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kalshi Watch</title>
+  <link rel="alternate" type="application/rss+xml" title="Kalshi Watch" href="/feed.xml">
+  <style>
+    :root {
+      --bg: #e6e2d8;
+      --bg-elev: #f3f0e8;
+      --bg-card: #faf8f3;
+      --border: #cfc8ba;
+      --text: #1c2420;
+      --muted: #5f6b63;
+      --accent: #0f766e;
+      --accent-dim: #0d9488;
+      --warn: #b45309;
+      --danger: #b42318;
+      --chip: #ebe6da;
+      --ink-soft: #2a3530;
+      --bar: #0f766e;
+      --bar-weak: #9aa89f;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font: 15px/1.45 "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(900px 420px at 12% -8%, #d5e8e2 0%, transparent 58%),
+        radial-gradient(700px 380px at 92% 8%, #ebe3d2 0%, transparent 50%),
+        linear-gradient(180deg, #ebe7dd 0%, var(--bg) 40%, #ddd7cb 100%);
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      backdrop-filter: blur(12px);
+      background: color-mix(in srgb, var(--bg-elev) 88%, transparent);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .bar {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 18px 20px 16px;
+      display: grid;
+      gap: 12px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 1.25rem;
+      letter-spacing: 0.02em;
+      color: var(--ink-soft);
+    }
+
+    .meta {
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .meta a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .meta a:hover { text-decoration: underline; }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+
+    input[type="search"] {
+      flex: 1 1 280px;
+      min-width: 0;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--bg-elev);
+      color: var(--text);
+      outline: none;
+    }
+
+    input[type="search"]:focus {
+      border-color: var(--accent-dim);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent);
+    }
+
+    button {
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--bg-card);
+      color: var(--text);
+      cursor: pointer;
+    }
+
+    button:hover {
+      border-color: var(--accent-dim);
+      background: var(--bg-elev);
+    }
+
+    main {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 18px 20px 48px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .status, .empty {
+      padding: 24px;
+      border: 1px dashed var(--border);
+      border-radius: 12px;
+      color: var(--muted);
+      background: var(--bg-elev);
+    }
+
+    .status.error { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 40%, var(--border)); }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.88em;
+      background: var(--chip);
+      padding: 1px 6px;
+      border-radius: 4px;
+    }
+
+    article {
+      display: grid;
+      gap: 14px;
+      padding: 18px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: var(--bg-card);
+      box-shadow: 0 1px 0 color-mix(in srgb, var(--text) 4%, transparent);
+    }
+
+    article h2 {
+      margin: 0;
+      font-size: 1.12rem;
+      font-weight: 650;
+      letter-spacing: -0.01em;
+      color: var(--ink-soft);
+    }
+
+    .headline {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 6px 16px;
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+
+    .outcomes {
+      display: grid;
+      gap: 14px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .outcomes li {
+      display: grid;
+      gap: 6px;
+    }
+
+    .outcome-top {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .outcome-label {
+      min-width: 0;
+      font-weight: 600;
+      color: var(--ink-soft);
+    }
+
+    .outcome-main {
+      flex: 0 0 auto;
+      font-size: 1.35rem;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.02em;
+      color: var(--text);
+      line-height: 1;
+    }
+
+    .outcome-main.is-last {
+      color: var(--muted);
+    }
+
+    .outcome-main .tag {
+      margin-left: 6px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      vertical-align: middle;
+    }
+
+    .prob-track {
+      height: 8px;
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--chip) 80%, var(--border));
+      overflow: hidden;
+    }
+
+    .prob-fill {
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--accent-dim), var(--bar));
+      min-width: 0;
+    }
+
+    .prob-fill.is-weak {
+      background: repeating-linear-gradient(
+        -45deg,
+        var(--bar-weak),
+        var(--bar-weak) 4px,
+        color-mix(in srgb, var(--bar-weak) 65%, white) 4px,
+        color-mix(in srgb, var(--bar-weak) 65%, white) 8px
+      );
+    }
+
+    .prices {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .chip {
+      display: inline-flex;
+      gap: 5px;
+      align-items: baseline;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: var(--chip);
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+
+    .chip b {
+      color: var(--text);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .chip.bid b { color: var(--accent); }
+    .chip.ask b { color: var(--warn); }
+
+    .ticker-hint {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.72rem;
+      color: var(--muted);
+      opacity: 0;
+      transition: opacity 0.15s ease;
+      overflow-wrap: anywhere;
+    }
+
+    .outcomes li:hover .ticker-hint,
+    .outcomes li:focus-within .ticker-hint {
+      opacity: 1;
+    }
+
+    .footer {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+      border-top: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+      padding-top: 10px;
+    }
+
+    details.more {
+      color: var(--muted);
+      font-size: 0.84rem;
+    }
+
+    details.more summary {
+      cursor: pointer;
+      user-select: none;
+      list-style: none;
+    }
+
+    details.more summary::-webkit-details-marker { display: none; }
+
+    details.more summary::after {
+      content: " ▾";
+      color: var(--accent);
+    }
+
+    details.more[open] summary::after { content: " ▴"; }
+
+    .more-body {
+      margin-top: 8px;
+      display: grid;
+      gap: 4px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.78rem;
+    }
+
+    a.market-link {
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 0.88rem;
+      font-weight: 600;
+    }
+
+    a.market-link:hover { text-decoration: underline; }
+
+    .outcomes-toggle {
+      justify-self: start;
+      padding: 6px 0;
+      border: 0;
+      background: transparent;
+      color: var(--accent);
+      font: inherit;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .outcomes-toggle:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="bar">
+      <div>
+        <h1 id="channel-title">Kalshi Watch</h1>
+        <div class="meta" id="channel-meta">
+          正在读取 <a href="/feed.xml">feed.xml</a> …
+        </div>
+      </div>
+      <div class="controls">
+        <input id="q" type="search" placeholder="搜索事件、outcome、ticker" autocomplete="off">
+        <button id="reload" type="button">重新加载</button>
+      </div>
+    </div>
+  </header>
+  <main id="list"></main>
+  <script>
+    const FEED_URL = "/feed.xml";
+    const META_RE = /^(Sub|Series|Event):\s*(.*)$/;
+    const MARKET_RE = /^(.*?)\s+—\s+(.*)$/;
+    const FIELD_RE = /(YES bid|YES ask|Last|24h volume|Ticker):\s*([^;]+)/g;
+    const SPREAD_WEAK = 10;
+    const COLLAPSED_COUNT = 3;
+    const COLLAPSE_AFTER = 6;
+    const THRESHOLD_RE = /^(above|below|over|under)\s+(-?\d+(?:\.\d+)?)/i;
+    const BUCKET_RE = /^(-?\d+(?:\.\d+)?)\s*[–-]\s*(-?\d+(?:\.\d+)?)/;
+    const TAIL_BELOW_RE = /^(-?\d+(?:\.\d+)?)\s+or\s+below/i;
+    const TAIL_ABOVE_RE = /^(-?\d+(?:\.\d+)?)\s+or\s+above/i;
+
+    const listEl = document.getElementById("list");
+    const titleEl = document.getElementById("channel-title");
+    const metaEl = document.getElementById("channel-meta");
+    const queryEl = document.getElementById("q");
+
+    let items = [];
+    const expandedItems = new Set();
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;");
+    }
+
+    function textOf(node, tag) {
+      return node.getElementsByTagName(tag)[0]?.textContent?.trim() || "";
+    }
+
+    function parsePercent(raw) {
+      if (raw == null || raw === "") return null;
+      const match = String(raw).match(/-?\d+(?:\.\d+)?/);
+      if (!match) return null;
+      return Number(match[0]);
+    }
+
+    function parseVolume(raw) {
+      if (raw == null || raw === "") return null;
+      const match = String(raw).match(/-?\d+(?:\.\d+)?/);
+      if (!match) return null;
+      return Number(match[0]);
+    }
+
+    function formatPercent(value) {
+      if (value == null || Number.isNaN(value)) return "—";
+      const formatted = Number.isInteger(value) ? value.toFixed(0) : value.toFixed(1);
+      return `${formatted}%`;
+    }
+
+    function formatVolume(value) {
+      if (value == null || Number.isNaN(value)) return null;
+      return Math.round(value).toLocaleString("en-US");
+    }
+
+    function formatJst(value) {
+      if (!value) return "";
+      const parsed = new Date(value);
+      if (Number.isNaN(parsed.getTime())) return value;
+      const stamp = parsed.toLocaleString("ja-JP", {
+        timeZone: "Asia/Tokyo",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+      });
+      return `${stamp} JST`;
+    }
+
+    function normalizeLabel(label) {
+      return String(label)
+        .replace(/\s+to\s+/gi, "–")
+        .replace(/\s+-\s+/g, "–")
+        .trim();
+    }
+
+    function parseDetail(detail) {
+      const fields = {};
+      for (const match of detail.matchAll(FIELD_RE)) {
+        fields[match[1]] = match[2].trim();
+      }
+      return {
+        bid: parsePercent(fields["YES bid"]),
+        ask: parsePercent(fields["YES ask"]),
+        last: parsePercent(fields.Last),
+        volume: parseVolume(fields["24h volume"]),
+        ticker: fields.Ticker || "",
+      };
+    }
+
+    function resolveProbability(market) {
+      const { bid, ask, last } = market;
+      const hasGoodBook =
+        bid != null &&
+        ask != null &&
+        bid > 0 &&
+        ask < 100 &&
+        ask >= bid &&
+        ask - bid < SPREAD_WEAK;
+
+      if (hasGoodBook) {
+        return {
+          value: (bid + ask) / 2,
+          kind: "mid",
+          note: null,
+        };
+      }
+
+      if (last != null && last > 0) {
+        return {
+          value: last,
+          kind: "last",
+          note: "Last",
+        };
+      }
+
+      return {
+        value: null,
+        kind: "none",
+        note: null,
+      };
+    }
+
+    function classifyOutcome(label) {
+      const text = String(label).trim();
+      const threshold = THRESHOLD_RE.exec(text);
+      if (threshold) {
+        return {
+          kind: "threshold",
+          sortKey: Number(threshold[2]),
+          direction: threshold[1].toLowerCase(),
+        };
+      }
+
+      const bucket = BUCKET_RE.exec(text);
+      if (bucket) {
+        return {
+          kind: "bucket",
+          sortKey: Number(bucket[1]),
+          end: Number(bucket[2]),
+        };
+      }
+
+      const below = TAIL_BELOW_RE.exec(text);
+      if (below) {
+        return { kind: "bucket", sortKey: Number.NEGATIVE_INFINITY, end: Number(below[1]) };
+      }
+
+      const above = TAIL_ABOVE_RE.exec(text);
+      if (above) {
+        return { kind: "bucket", sortKey: Number(above[1]), end: Number.POSITIVE_INFINITY };
+      }
+
+      return { kind: "categorical", sortKey: null };
+    }
+
+    function detectEventShape(markets) {
+      if (!markets.length) return "categorical";
+      const kinds = new Set(markets.map((market) => market.shape.kind));
+      if (kinds.size === 1 && kinds.has("threshold")) return "threshold";
+      if (kinds.has("bucket") && !kinds.has("categorical")) return "bucket";
+      if ([...kinds].every((kind) => kind === "bucket" || kind === "threshold")) {
+        // Mixed numeric ladder still reads better in value order.
+        return kinds.has("bucket") ? "bucket" : "threshold";
+      }
+      return "categorical";
+    }
+
+    function sortMarkets(markets) {
+      const shape = detectEventShape(markets);
+      const sorted = markets.slice();
+
+      if (shape === "threshold") {
+        sorted.sort((left, right) => {
+          if (left.shape.sortKey !== right.shape.sortKey) {
+            return left.shape.sortKey - right.shape.sortKey;
+          }
+          return left.label.localeCompare(right.label);
+        });
+        return sorted;
+      }
+
+      if (shape === "bucket") {
+        sorted.sort((left, right) => {
+          if (left.shape.sortKey !== right.shape.sortKey) {
+            return left.shape.sortKey - right.shape.sortKey;
+          }
+          const leftEnd = left.shape.end ?? 0;
+          const rightEnd = right.shape.end ?? 0;
+          if (leftEnd !== rightEnd) return leftEnd - rightEnd;
+          return left.label.localeCompare(right.label);
+        });
+        return sorted;
+      }
+
+      sorted.sort((left, right) => {
+        const leftValue = left.probability.value ?? -1;
+        const rightValue = right.probability.value ?? -1;
+        if (rightValue !== leftValue) return rightValue - leftValue;
+        return (right.volume || 0) - (left.volume || 0);
+      });
+      return sorted;
+    }
+
+    function sortByShapeKey(markets) {
+      return markets.slice().sort((left, right) => {
+        if (left.shape.sortKey !== right.shape.sortKey) {
+          return left.shape.sortKey - right.shape.sortKey;
+        }
+        const leftEnd = left.shape.end ?? 0;
+        const rightEnd = right.shape.end ?? 0;
+        if (leftEnd !== rightEnd) return leftEnd - rightEnd;
+        return left.label.localeCompare(right.label);
+      });
+    }
+
+    function featuredMarkets(markets) {
+      if (markets.length <= COLLAPSE_AFTER) return markets;
+
+      const shape = detectEventShape(markets);
+      if (shape === "threshold") {
+        return sortByShapeKey(
+          markets
+            .slice()
+            .sort((left, right) => (right.volume || 0) - (left.volume || 0))
+            .slice(0, COLLAPSED_COUNT)
+        );
+      }
+
+      if (shape === "bucket") {
+        return sortByShapeKey(
+          markets
+            .slice()
+            .sort(
+              (left, right) =>
+                (right.probability.value ?? -1) - (left.probability.value ?? -1)
+            )
+            .slice(0, COLLAPSED_COUNT)
+        );
+      }
+
+      return markets;
+    }
+
+    function parseDescription(raw) {
+      const fields = {};
+      const markets = [];
+      for (const line of raw.split(/\r?\n/)) {
+        const trimmed = line.trim();
+        if (!trimmed) continue;
+        const meta = META_RE.exec(trimmed);
+        if (meta) {
+          fields[meta[1]] = meta[2];
+          continue;
+        }
+        const market = MARKET_RE.exec(trimmed);
+        if (!market) continue;
+        const label = normalizeLabel(market[1]);
+        const parsed = {
+          label,
+          shape: classifyOutcome(label),
+          ...parseDetail(market[2]),
+        };
+        parsed.probability = resolveProbability(parsed);
+        markets.push(parsed);
+      }
+
+      return { fields, markets: sortMarkets(markets) };
+    }
+
+    function chip(label, value, className) {
+      if (value == null || value === "") return "";
+      return `<span class="chip ${className || ""}">${escapeHtml(label)} <b>${escapeHtml(value)}</b></span>`;
+    }
+
+    function renderOutcome(market) {
+      const probability = market.probability;
+      const width = Math.max(0, Math.min(100, probability.value ?? 0));
+      const mainClass = probability.kind === "last" ? "outcome-main is-last" : "outcome-main";
+      const fillClass = probability.kind === "last" ? "prob-fill is-weak" : "prob-fill";
+      const mainText = probability.value == null
+        ? "—"
+        : `${formatPercent(probability.value)}${probability.note ? `<span class="tag">${escapeHtml(probability.note)}</span>` : ""}`;
+
+      return `
+        <li title="${escapeHtml(market.ticker || market.label)}">
+          <div class="outcome-top">
+            <span class="outcome-label">${escapeHtml(market.label)}</span>
+            <span class="${mainClass}">${mainText}</span>
+          </div>
+          <div class="prob-track" aria-hidden="true">
+            <div class="${fillClass}" style="width:${width}%"></div>
+          </div>
+          <div class="prices">
+            ${chip("Bid", market.bid == null ? null : formatPercent(market.bid), "bid")}
+            ${chip("Ask", market.ask == null ? null : formatPercent(market.ask), "ask")}
+            ${chip("Vol", formatVolume(market.volume))}
+          </div>
+          ${market.ticker ? `<div class="ticker-hint">${escapeHtml(market.ticker)}</div>` : ""}
+        </li>
+      `;
+    }
+
+    function renderItem(item) {
+      const { fields, markets } = parseDescription(item.description);
+      const href = item.link || "https://kalshi.com/markets";
+      const updated = formatJst(item.pubDate);
+      const details = [
+        fields.Series ? `Series ${fields.Series}` : "",
+        fields.Event || item.guid ? `Event ${fields.Event || item.guid}` : "",
+      ].filter(Boolean);
+      const itemKey = item.guid || item.title;
+      const shape = detectEventShape(markets);
+      const canCollapse =
+        markets.length > COLLAPSE_AFTER &&
+        (shape === "bucket" || shape === "threshold");
+      const isExpanded = expandedItems.has(itemKey);
+      const visibleMarkets = canCollapse && !isExpanded
+        ? featuredMarkets(markets)
+        : markets;
+      const toggleHtml = canCollapse
+        ? `<button
+            type="button"
+            class="outcomes-toggle"
+            data-expand-key="${escapeHtml(itemKey)}"
+            aria-expanded="${isExpanded ? "true" : "false"}"
+          >${isExpanded
+            ? "Show less ▴"
+            : `Show all ${markets.length} outcomes ▾`}</button>`
+        : "";
+
+      return `
+        <article>
+          <h2>${escapeHtml(item.title)}</h2>
+          <div class="headline">
+            <span>${escapeHtml(fields.Sub || "")}</span>
+            <span>${updated ? `Updated ${escapeHtml(updated)}` : ""}</span>
+          </div>
+          ${visibleMarkets.length ? `<ul class="outcomes">${visibleMarkets.map(renderOutcome).join("")}</ul>` : ""}
+          ${toggleHtml}
+          <div class="footer">
+            ${details.length ? `
+              <details class="more">
+                <summary>Details</summary>
+                <div class="more-body">${details.map((line) => `<div>${escapeHtml(line)}</div>`).join("")}</div>
+              </details>` : "<span></span>"}
+            <a class="market-link" href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer">Open Kalshi ↗</a>
+          </div>
+        </article>
+      `;
+    }
+
+    function applyFilter() {
+      const needle = queryEl.value.trim().toLowerCase();
+      const visible = needle
+        ? items.filter((item) => item.searchText.includes(needle))
+        : items;
+
+      if (!visible.length) {
+        listEl.innerHTML = `<div class="empty">没有匹配「${escapeHtml(queryEl.value)}」的事件。</div>`;
+        return;
+      }
+      listEl.innerHTML = visible.map(renderItem).join("");
+    }
+
+    function fileProtocolHint() {
+      return `当前页面是通过 <code>file://</code> 打开的，无法读取 RSS。请用 <code>uv run pywrangler dev --test-scheduled</code> 启动本地 Worker，然后打开 <code>http://localhost:8787/</code>。`;
+    }
+
+    function scheduledTriggerHint() {
+      const origin = window.location.origin;
+      if (origin.includes("localhost") || origin.includes("127.0.0.1")) {
+        return `<p>本地可先生成再写入 KV：</p><code>python kalshi_rss.py && uv run pywrangler kv key put feed.xml --path=feed.xml --binding=RSS_KV --remote</code>`;
+      }
+      return `<p>Feed 由 GitHub Actions「Refresh Feed」每 30 分钟更新；也可在 Actions 里手动 Run workflow。</p>`;
+    }
+
+    function renderPendingFeed() {
+      listEl.innerHTML = `
+        <div class="status">
+          <p>RSS 尚未生成。Worker 的 KV 里还没有 <code>feed.xml</code>。</p>
+          ${scheduledTriggerHint()}
+        </div>`;
+      metaEl.innerHTML = `等待首次生成 · <a href="${FEED_URL}">feed.xml</a>`;
+    }
+
+    async function loadFeed() {
+      listEl.innerHTML = `<div class="status">正在读取 <code>${escapeHtml(FEED_URL)}</code> …</div>`;
+      metaEl.innerHTML = `正在读取 <a href="${FEED_URL}">feed.xml</a> …`;
+
+      try {
+        const response = await fetch(FEED_URL, { cache: "no-store" });
+        if (response.status === 503) {
+          renderPendingFeed();
+          return;
+        }
+        if (!response.ok) {
+          throw new Error(`无法读取 ${FEED_URL}（HTTP ${response.status}）`);
+        }
+
+        const xml = new DOMParser().parseFromString(await response.text(), "application/xml");
+        if (xml.querySelector("parsererror")) {
+          throw new Error(`${FEED_URL} 不是有效的 XML`);
+        }
+
+        const channel = xml.querySelector("channel");
+        if (!channel) throw new Error("RSS 缺少 channel");
+
+        titleEl.textContent = textOf(channel, "title") || "Kalshi Watch";
+        const description = textOf(channel, "description");
+        const itemNodes = [...channel.getElementsByTagName("item")];
+
+        items = itemNodes.map((node) => {
+          const title = textOf(node, "title") || "(untitled)";
+          const descriptionText = textOf(node, "description");
+          const guid = textOf(node, "guid");
+          const pubDate = textOf(node, "pubDate");
+          const link = textOf(node, "link");
+          return {
+            title,
+            description: descriptionText,
+            guid,
+            pubDate,
+            link,
+            searchText: [title, descriptionText, guid, pubDate].join("\n").toLowerCase(),
+          };
+        });
+
+        metaEl.innerHTML = [
+          description,
+          `${items.length} 条事件`,
+          `<a href="${FEED_URL}">RSS</a>`,
+        ].filter(Boolean).join(" · ");
+
+        if (!items.length) {
+          listEl.innerHTML = `<div class="empty">feed 里没有匹配的事件。检查 Worker 配置中的 keywords。</div>`;
+          return;
+        }
+
+        applyFilter();
+      } catch (error) {
+        const hint = window.location.protocol === "file:" ? `<p>${fileProtocolHint()}</p>` : "";
+        listEl.innerHTML = `<div class="status error"><p>${escapeHtml(error.message)}</p>${hint}</div>`;
+        metaEl.innerHTML = `读取失败 · <a href="${FEED_URL}">feed.xml</a>`;
+      }
+    }
+
+    queryEl.addEventListener("input", applyFilter);
+    document.getElementById("reload").addEventListener("click", () => {
+      queryEl.value = "";
+      expandedItems.clear();
+      loadFeed();
+    });
+    listEl.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-expand-key]");
+      if (!button) return;
+      const key = button.getAttribute("data-expand-key");
+      if (!key) return;
+      if (expandedItems.has(key)) expandedItems.delete(key);
+      else expandedItems.add(key);
+      applyFilter();
+    });
+
+    loadFeed();
+  </script>
+</body>
+</html>

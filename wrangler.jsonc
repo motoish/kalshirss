@@ -1,0 +1,31 @@
+{
+	"$schema": "./node_modules/wrangler/config-schema.json",
+	"name": "kalshi-rss",
+	"main": "src/entry.py",
+	"compatibility_date": "2026-08-13",
+	"compatibility_flags": [
+		"python_workers"
+	],
+	"assets": {
+		"directory": "./public",
+		"binding": "ASSETS"
+	},
+	"kv_namespaces": [
+		{
+			"binding": "RSS_KV",
+			"id": "d11725654eca46699d468f3691a85507"
+		}
+	],
+	"vars": {
+		"REFRESH_TOKEN": "kalshi-rss-refresh"
+	},
+	"triggers": {
+		"crons": []
+	},
+	"routes": [
+		{
+			"pattern": "rss.motoish.dev",
+			"custom_domain": true
+		}
+	]
+}

@@ -1,0 +1,7 @@
+__pycache__
+.pytest_cache
+.venv
+.vscode
+.wrangler
+.venv-workers
+python_modules
