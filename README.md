@@ -1,12 +1,14 @@
 # Kalshi RSS
 
-把 Kalshi 上关注主题的开放 Event 转成 RSS 2.0 feed。
+[简体中文](README.zh-CN.md)
 
-只使用 Kalshi 公开 API，不需要账号或 API Key。
+Turn open Kalshi Events for the topics you follow into an RSS 2.0 feed.
+
+Uses Kalshi's public API. No Kalshi account or API key is required.
 
 ## Quick start
 
-需要 Python 3.12+。
+Requires Python 3.12+.
 
 ```bash
 python -m venv .venv
@@ -14,17 +16,17 @@ source .venv/bin/activate
 pip install requests
 ```
 
-编辑 `config.json`，然后运行：
+Edit `config.json`, then run:
 
 ```bash
 python kalshi_rss.py
 ```
 
-脚本会在项目根目录生成 `feed.xml`。生成的文件可以直接交给 RSS Reader，或作为在线 feed 发布。
+The script writes `feed.xml` to the project root. Import it into an RSS reader or publish it as an online feed.
 
-## 配置
+## Configuration
 
-最常修改的是 `config.json` 中的 `keywords` 和 `series_tickers`：
+The two fields you will usually change are `keywords` and `series_tickers`:
 
 ```json
 {
@@ -33,44 +35,44 @@ python kalshi_rss.py
 }
 ```
 
-- `series_tickers`：指定要读取的 Series。填写后优先使用它，不再扫描全部 Series。
-- `keywords`：当没有指定 `series_tickers` 时，按 Series 的标题、描述和 ticker 匹配关键词。
+- `series_tickers`: Series to read explicitly. When set, it takes priority and the script does not scan every Series.
+- `keywords`: Used to match Series titles, subtitles, and tickers when `series_tickers` is not set.
 
-其他配置项：
+Other options:
 
-| 字段 | 作用 |
+| Field | Description |
 | --- | --- |
-| `api_url` | Kalshi Markets API 地址 |
-| `channel_title` | RSS 名称 |
-| `output` | 输出文件名，默认为 `feed.xml` |
-| `timeout_seconds` | 单次请求超时时间 |
-| `page_limit` | 每页请求数量，Events 会自动限制为不超过 200 |
-| `max_pages` | 分页上限，避免异常 cursor 无限循环 |
+| `api_url` | Kalshi Markets API URL |
+| `channel_title` | RSS channel title |
+| `output` | Output filename; defaults to `feed.xml` |
+| `timeout_seconds` | Request timeout in seconds |
+| `page_limit` | Number of items per page; Events are automatically capped at 200 |
+| `max_pages` | Pagination limit to prevent an endless cursor loop |
 
-## 筛选规则
+## Filtering
 
 ```text
 Series → open Event → active market → RSS item
 ```
 
-- 只读取状态为 `open` 的 Event。
-- 只保留有交易活动的 market：24 小时成交量、YES bid size 或 YES ask size 大于 0。
-- 一个 Event 对应一条 RSS item，market 的价格、成交量和 ticker 写入 description。
-- RSS 的 `guid` 使用 Event ticker，同一事件重复刷新不会产生新的 ID。
+- Only Events with `status=open` are included.
+- A market is kept when its 24-hour volume, YES bid size, or YES ask size is greater than zero.
+- Each Event becomes one RSS item. Market prices, volume, and tickers are included in its description.
+- The RSS `guid` is the Event ticker, so refreshing the feed does not create a new ID for the same Event.
 
-## 本地预览
+## Local preview
 
-在项目根目录启动静态服务：
+Start a static server from the project root:
 
 ```bash
 python3 -m http.server 8000
 ```
 
-打开 <http://localhost:8000/public/> 查看网页预览，打开 <http://localhost:8000/feed.xml> 查看原始 RSS。
+Open <http://localhost:8000/public/> for the web preview, or <http://localhost:8000/feed.xml> for the raw RSS file.
 
-不要直接用 `file://` 双击打开页面，浏览器会阻止页面读取本地 XML。
+Do not open the page directly with `file://`; the browser will block it from reading the local XML file.
 
-## 测试
+## Tests
 
 ```bash
 pip install pytest
