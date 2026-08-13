@@ -8,35 +8,6 @@
 
 线上地址：[rss.motoish.dev](https://rss.motoish.dev) · [feed.xml](https://rss.motoish.dev/feed.xml)
 
-## 架构
-
-刷新 **不在** Worker 内执行。Kalshi 会限制 Cloudflare 出口 IP，因此由 GitHub Actions 拉 feed，Worker 只负责对外提供。
-
-```text
-GitHub Actions（每小时的 :07 和 :37）
-        │
-        ▼
-  Kalshi 公开 API
-        │
-        ▼
-     feed.xml
-        │
-        ▼
-  Cloudflare KV（RSS_KV）
-        │
-        ▼
-  Cloudflare Worker  →  rss.motoish.dev
-        ├── GET /feed.xml  →  从 KV 读 RSS
-        └── 其他路径       →  静态资源（public/）
-```
-
-| 部分 | 作用 |
-| --- | --- |
-| `.github/workflows/refresh-feed.yml` | 每小时第 7、37 分钟：`uv run python kalshi_rss.py`，再把 `feed.xml` 写入 KV |
-| `.github/workflows/deploy.yml` | 推送到 `main`：跑测试，再 `uv run pywrangler deploy` |
-| `src/entry.py` | Worker：`/feed.xml` 读 KV，其余走 `ASSETS` |
-| `config.json` | GitHub Actions 生成器使用的关键词 / Series ticker |
-
 ## 快速开始
 
 需要 Python 3.12+ 和 [uv](https://docs.astral.sh/uv/)。
