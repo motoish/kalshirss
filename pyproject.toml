@@ -4,7 +4,10 @@ version = "0.1.0"
 description = "Kalshi RSS feed"
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = []
+dependencies = ["requests"]
 
 [dependency-groups]
-dev = ["workers-py", "workers-runtime-sdk"]
+dev = ["workers-py", "workers-runtime-sdk", "pytest"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]

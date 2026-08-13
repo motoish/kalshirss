@@ -8,25 +8,29 @@ Uses Kalshi's public API. No Kalshi account or API key is required.
 
 ## Quick start
 
-Requires Python 3.12+.
+Requires Python 3.12+ and [uv](https://docs.astral.sh/uv/).
 
 ```bash
-python -m venv .venv
-source .venv/bin/activate
-pip install requests
+uv sync --group dev
 ```
 
-Edit `config.json`, then run:
+Edit `config.json`, then generate a feed:
 
 ```bash
-python kalshi_rss.py
+uv run python kalshi_rss.py
 ```
 
-The script writes `feed.xml` to the project root. Import it into an RSS reader or publish it as an online feed.
+The script writes `feed.xml` to the project root.
+
+Upload it to KV (remote = production; omit `--remote` for local Wrangler KV):
+
+```bash
+uv run pywrangler kv key put feed.xml --path=feed.xml --binding=RSS_KV --remote
+```
 
 ## Configuration
 
-The two fields you will usually change are `keywords` and `series_tickers`:
+`series_tickers` and `keywords` are two **mutually exclusive** ways to choose which Series to read. They are not combined.
 
 ```json
 {
@@ -35,8 +39,19 @@ The two fields you will usually change are `keywords` and `series_tickers`:
 }
 ```
 
-- `series_tickers`: Series to read explicitly. When set, it takes priority and the script does not scan every Series.
-- `keywords`: Used to match Series titles, subtitles, and tickers when `series_tickers` is not set.
+**If `series_tickers` is non-empty (this repo's default):**
+
+- Fetch open Events only for those exact Series ticker strings.
+- Do **not** scan Kalshi's full Series catalog.
+- `keywords` is **ignored** for matching. Keep it as documentation, or clear `series_tickers` if you want keyword scan.
+
+**If `series_tickers` is empty or omitted:**
+
+- Page through all Series and keep those that match `keywords`.
+- Title and subtitle: case-insensitive **word-boundary** match (`yen` matches "Japanese yen", not "yenendor").
+- Ticker / event ticker: uppercase code keywords like `JPY` or `BOJ` use **substring** match; other keywords still use word boundaries.
+
+Use explicit `series_tickers` in production. Scanning every Series is slow and easy to rate-limit.
 
 Other options:
 
@@ -62,19 +77,19 @@ Series → open Event → active market → RSS item
 
 ## Local preview
 
-Start a static server from the project root:
-
 ```bash
-python3 -m http.server 8000
+uv sync --group dev
+uv run python kalshi_rss.py
+uv run pywrangler kv key put feed.xml --path=feed.xml --binding=RSS_KV
+uv run pywrangler dev
 ```
 
-Open <http://localhost:8000/public/> for the web preview, or <http://localhost:8000/feed.xml> for the raw RSS file.
+Open <http://localhost:8787/> for the web preview, or <http://localhost:8787/feed.xml> for the raw RSS.
 
-Do not open the page directly with `file://`; the browser will block it from reading the local XML file.
+Do not open the page with `file://`; the browser cannot read `/feed.xml` that way.
 
 ## Tests
 
 ```bash
-pip install pytest
-python -m pytest -q
+uv run pytest -q
 ```

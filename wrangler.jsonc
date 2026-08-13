@@ -6,6 +6,7 @@
 	"compatibility_flags": [
 		"python_workers"
 	],
+	"account_id": "2d81e19143fcd34eaf05e18fe98a7753",
 	"assets": {
 		"directory": "./public",
 		"binding": "ASSETS"
@@ -16,12 +17,6 @@
 			"id": "d11725654eca46699d468f3691a85507"
 		}
 	],
-	"vars": {
-		"REFRESH_TOKEN": "kalshi-rss-refresh"
-	},
-	"triggers": {
-		"crons": []
-	},
 	"routes": [
 		{
 			"pattern": "rss.motoish.dev",

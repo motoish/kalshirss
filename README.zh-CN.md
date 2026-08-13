@@ -6,27 +6,62 @@
 
 只使用 Kalshi 公开 API，不需要账号或 API Key。
 
+线上地址：[rss.motoish.dev](https://rss.motoish.dev) · [feed.xml](https://rss.motoish.dev/feed.xml)
+
+## 架构
+
+刷新 **不在** Worker 内执行。Kalshi 会限制 Cloudflare 出口 IP，因此由 GitHub Actions 拉 feed，Worker 只负责对外提供。
+
+```text
+GitHub Actions（每小时的 :07 和 :37）
+        │
+        ▼
+  Kalshi 公开 API
+        │
+        ▼
+     feed.xml
+        │
+        ▼
+  Cloudflare KV（RSS_KV）
+        │
+        ▼
+  Cloudflare Worker  →  rss.motoish.dev
+        ├── GET /feed.xml  →  从 KV 读 RSS
+        └── 其他路径       →  静态资源（public/）
+```
+
+| 部分 | 作用 |
+| --- | --- |
+| `.github/workflows/refresh-feed.yml` | 每小时第 7、37 分钟：`uv run python kalshi_rss.py`，再把 `feed.xml` 写入 KV |
+| `.github/workflows/deploy.yml` | 推送到 `main`：跑测试，再 `uv run pywrangler deploy` |
+| `src/entry.py` | Worker：`/feed.xml` 读 KV，其余走 `ASSETS` |
+| `config.json` | GitHub Actions 生成器使用的关键词 / Series ticker |
+
 ## 快速开始
 
-需要 Python 3.12+。
+需要 Python 3.12+ 和 [uv](https://docs.astral.sh/uv/)。
 
 ```bash
-python -m venv .venv
-source .venv/bin/activate
-pip install requests
+uv sync --group dev
 ```
 
-编辑 `config.json`，然后运行：
+编辑 `config.json`，然后生成 feed：
 
 ```bash
-python kalshi_rss.py
+uv run python kalshi_rss.py
 ```
 
-脚本会在项目根目录生成 `feed.xml`。生成的文件可以交给 RSS Reader，或作为在线 feed 发布。
+脚本会在项目根目录写出 `feed.xml`。
+
+上传到 KV（`--remote` 写生产；本地 Wrangler KV 去掉该参数）：
+
+```bash
+uv run pywrangler kv key put feed.xml --path=feed.xml --binding=RSS_KV --remote
+```
 
 ## 配置
 
-通常只需要修改 `keywords` 和 `series_tickers`：
+`series_tickers` 和 `keywords` 是两种 **互斥** 的 Series 选择方式，不会叠加使用。
 
 ```json
 {
@@ -35,8 +70,19 @@ python kalshi_rss.py
 }
 ```
 
-- `series_tickers`：指定要读取的 Series。填写后优先使用它，不再扫描全部 Series。
-- `keywords`：当没有指定 `series_tickers` 时，按 Series 的标题、subtitle 和 ticker 匹配关键词。
+**当 `series_tickers` 非空时（本仓库默认）：**
+
+- 只按这些精确的 Series ticker 拉取开放 Event。
+- **不会** 扫描 Kalshi 的全部 Series。
+- 匹配阶段 **忽略** `keywords`。可把它当注释保留；若要按关键词扫描，请清空 `series_tickers`。
+
+**当 `series_tickers` 为空或未填写时：**
+
+- 分页遍历全部 Series，保留匹配 `keywords` 的项。
+- 标题和 subtitle：不区分大小写的 **词边界** 匹配（`yen` 能匹配 "Japanese yen"，不会匹配 "yenendor"）。
+- ticker / event ticker：全大写代码类关键词（如 `JPY`、`BOJ`）用 **子串** 匹配；其余关键词仍用词边界。
+
+生产环境请用明确的 `series_tickers`。全量扫描又慢，也更容易触发限流。
 
 其他配置项：
 
@@ -62,19 +108,19 @@ Series → open Event → active market → RSS item
 
 ## 本地预览
 
-在项目根目录启动静态服务：
-
 ```bash
-python3 -m http.server 8000
+uv sync --group dev
+uv run python kalshi_rss.py
+uv run pywrangler kv key put feed.xml --path=feed.xml --binding=RSS_KV
+uv run pywrangler dev
 ```
 
-打开 <http://localhost:8000/public/> 查看网页预览，打开 <http://localhost:8000/feed.xml> 查看原始 RSS。
+打开 <http://localhost:8787/> 查看网页预览，打开 <http://localhost:8787/feed.xml> 查看原始 RSS。
 
-不要直接用 `file://` 双击打开页面，浏览器会阻止页面读取本地 XML。
+不要用 `file://` 直接打开页面，浏览器无法读取 `/feed.xml`。
 
 ## 测试
 
 ```bash
-pip install pytest
-python -m pytest -q
+uv run pytest -q
 ```
