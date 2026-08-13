@@ -12,19 +12,15 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #f3f4f6;
-      --bg-elev: #f9fafb;
+      --bg: #f6f7f8;
       --bg-card: #ffffff;
       --border: #e5e7eb;
       --text: #111827;
       --muted: #6b7280;
-      --accent: #2563eb;
-      --accent-dim: #3b82f6;
+      --accent: #087f5b;
       --danger: #dc2626;
-      --chip: #f3f4f6;
-      --ink-soft: #111827;
-      --bar: #2563eb;
-      --bar-weak: #9ca3af;
+      --track: #eef0f2;
+      --bar-weak: #c5c9ce;
     }
 
     * { box-sizing: border-box; }
@@ -33,7 +29,7 @@
       margin: 0;
       min-height: 100vh;
       font: 14px/1.4 Inter, "Segoe UI", Helvetica, Arial, sans-serif;
-      font-feature-settings: "tnum" 1, "ss01" 1;
+      font-feature-settings: "tnum" 1;
       letter-spacing: -0.011em;
       color: var(--text);
       background: var(--bg);
@@ -43,52 +39,63 @@
       position: sticky;
       top: 0;
       z-index: 10;
-      background: #ffffff;
+      background: var(--bg);
       border-bottom: 1px solid var(--border);
     }
 
     .bar {
-      max-width: 1080px;
+      max-width: 820px;
       margin: 0 auto;
-      padding: 14px 20px 12px;
+      padding: 16px 20px 14px;
       display: grid;
-      gap: 10px;
+      gap: 12px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
     }
 
     h1 {
       margin: 0;
-      font-size: 1.05rem;
+      font-size: 1.2rem;
       font-weight: 700;
-      letter-spacing: -0.03em;
-      color: var(--ink-soft);
+      letter-spacing: -0.04em;
+      color: var(--text);
     }
 
-    .meta {
+    .tagline {
+      margin: 2px 0 0;
       color: var(--muted);
       font-size: 0.8rem;
       font-weight: 500;
     }
 
-    .meta a {
+    .rss-link {
+      flex: 0 0 auto;
+      margin-top: 2px;
       color: var(--accent);
       text-decoration: none;
+      font-size: 0.82rem;
+      font-weight: 600;
     }
 
-    .meta a:hover { text-decoration: underline; }
+    .rss-link:hover { text-decoration: underline; }
 
     .controls {
       display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
+      gap: 8px;
       align-items: center;
     }
 
     input[type="search"] {
-      flex: 1 1 280px;
+      flex: 1;
       min-width: 0;
       padding: 8px 10px;
       border: 1px solid var(--border);
-      border-radius: 4px;
+      border-radius: 6px;
       background: var(--bg-card);
       color: var(--text);
       outline: none;
@@ -97,97 +104,86 @@
 
     input[type="search"]:focus {
       border-color: var(--accent);
-      box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 18%, transparent);
     }
 
-    button {
-      padding: 8px 12px;
+    button.reload {
+      flex: 0 0 36px;
+      width: 36px;
+      height: 36px;
+      padding: 0;
       border: 1px solid var(--border);
-      border-radius: 4px;
+      border-radius: 6px;
       background: var(--bg-card);
-      color: var(--text);
+      color: var(--muted);
       font: inherit;
-      font-weight: 600;
+      font-size: 1rem;
       cursor: pointer;
     }
 
-    button:hover {
-      border-color: var(--accent);
-      color: var(--accent);
+    button.reload:hover {
+      color: var(--text);
+      border-color: #d1d5db;
     }
 
     main {
-      max-width: 1080px;
+      max-width: 820px;
       margin: 0 auto;
-      padding: 14px 20px 40px;
+      padding: 16px 20px 48px;
       display: grid;
-      grid-template-columns: 1fr;
-      gap: 10px;
-      align-items: start;
-    }
-
-    @media (min-width: 760px) {
-      main {
-        grid-template-columns: 1fr 1fr;
-        gap: 12px;
-      }
-
-      main > .status,
-      main > .empty {
-        grid-column: 1 / -1;
-      }
+      gap: 12px;
     }
 
     .status, .empty {
       padding: 20px;
       border: 1px solid var(--border);
-      border-radius: 4px;
+      border-radius: 8px;
       color: var(--muted);
       background: var(--bg-card);
     }
 
-    .status.error { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 40%, var(--border)); }
+    .status.error { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 35%, var(--border)); }
 
     code {
       font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
       font-size: 0.88em;
-      background: var(--chip);
+      background: var(--track);
       padding: 1px 5px;
-      border-radius: 2px;
+      border-radius: 3px;
     }
 
     article {
       display: grid;
-      gap: 8px;
-      padding: 12px 12px 10px;
+      gap: 12px;
+      padding: 16px 16px 12px;
       border: 1px solid var(--border);
-      border-radius: 4px;
+      border-radius: 8px;
       background: var(--bg-card);
       min-width: 0;
     }
 
     article h2 {
       margin: 0;
-      font-size: 0.92rem;
+      font-size: 1.12rem;
       font-weight: 700;
-      letter-spacing: -0.025em;
-      line-height: 1.3;
-      color: var(--ink-soft);
+      letter-spacing: -0.03em;
+      line-height: 1.25;
+      color: var(--text);
     }
 
     .headline {
       display: flex;
       flex-wrap: wrap;
       justify-content: space-between;
-      gap: 4px 12px;
+      gap: 4px 16px;
+      margin-top: -6px;
       color: var(--muted);
-      font-size: 0.72rem;
-      font-weight: 500;
+      font-size: 0.78rem;
+      font-weight: 400;
     }
 
     .outcomes {
       display: grid;
-      gap: 8px;
+      gap: 10px;
       margin: 0;
       padding: 0;
       list-style: none;
@@ -195,7 +191,7 @@
 
     .outcomes li {
       display: grid;
-      gap: 4px;
+      gap: 3px;
     }
 
     .outcome-top {
@@ -207,16 +203,15 @@
 
     .outcome-label {
       min-width: 0;
-      font-size: 0.82rem;
-      font-weight: 600;
-      letter-spacing: -0.01em;
-      color: var(--ink-soft);
+      font-size: 0.88rem;
+      font-weight: 500;
+      color: var(--text);
     }
 
     .outcome-main {
       flex: 0 0 auto;
-      font-size: 1.05rem;
-      font-weight: 700;
+      font-size: 1.12rem;
+      font-weight: 650;
       font-variant-numeric: tabular-nums;
       letter-spacing: -0.03em;
       color: var(--text);
@@ -229,24 +224,24 @@
 
     .outcome-main .tag {
       margin-left: 6px;
-      font-size: 0.72rem;
+      font-size: 0.65rem;
       font-weight: 600;
-      letter-spacing: 0.04em;
+      letter-spacing: 0.08em;
       text-transform: uppercase;
       vertical-align: middle;
     }
 
     .prob-track {
-      height: 4px;
-      border-radius: 0;
-      background: var(--chip);
+      height: 8px;
+      border-radius: 2px;
+      background: var(--track);
       overflow: hidden;
     }
 
     .prob-fill {
       height: 100%;
-      border-radius: 0;
-      background: var(--bar);
+      border-radius: inherit;
+      background: var(--accent);
       min-width: 0;
     }
 
@@ -254,42 +249,32 @@
       background: repeating-linear-gradient(
         -45deg,
         var(--bar-weak),
-        var(--bar-weak) 4px,
-        color-mix(in srgb, var(--bar-weak) 65%, white) 4px,
-        color-mix(in srgb, var(--bar-weak) 65%, white) 8px
+        var(--bar-weak) 3px,
+        color-mix(in srgb, var(--bar-weak) 70%, white) 3px,
+        color-mix(in srgb, var(--bar-weak) 70%, white) 6px
       );
     }
 
     .prices {
       display: flex;
       flex-wrap: wrap;
-      gap: 6px;
-      align-items: center;
-    }
-
-    .chip {
-      display: inline-flex;
-      gap: 4px;
+      gap: 12px;
       align-items: baseline;
-      padding: 1px 6px;
-      border-radius: 2px;
-      background: var(--chip);
-      font-size: 0.7rem;
-      font-weight: 500;
       color: var(--muted);
+      font-size: 0.75rem;
     }
 
-    .chip b {
-      color: var(--text);
+    .metric b {
+      font-weight: 600;
       font-variant-numeric: tabular-nums;
+      color: var(--text);
     }
 
-    .chip.bid b,
-    .chip.ask b { color: var(--accent); }
+    .metric.bid b { color: var(--accent); }
 
     .ticker-hint {
       font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-      font-size: 0.72rem;
+      font-size: 0.7rem;
       color: var(--muted);
       opacity: 0;
       transition: opacity 0.15s ease;
@@ -308,13 +293,12 @@
       gap: 8px;
       align-items: center;
       border-top: 1px solid var(--border);
-      padding-top: 8px;
+      padding-top: 10px;
     }
 
     details.more {
       color: var(--muted);
       font-size: 0.78rem;
-      font-weight: 500;
     }
 
     details.more summary {
@@ -325,25 +309,18 @@
 
     details.more summary::-webkit-details-marker { display: none; }
 
-    details.more summary::after {
-      content: " ▾";
-      color: var(--accent);
-    }
-
-    details.more[open] summary::after { content: " ▴"; }
-
     .more-body {
       margin-top: 8px;
       display: grid;
       gap: 4px;
       font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-      font-size: 0.78rem;
+      font-size: 0.74rem;
     }
 
     a.market-link {
       color: var(--accent);
       text-decoration: none;
-      font-size: 0.8rem;
+      font-size: 0.78rem;
       font-weight: 600;
     }
 
@@ -351,31 +328,33 @@
 
     .outcomes-toggle {
       justify-self: start;
-      padding: 2px 0;
+      margin: 0;
+      padding: 0;
       border: 0;
       background: transparent;
-      color: var(--accent);
+      color: var(--muted);
       font: inherit;
-      font-size: 0.8rem;
-      font-weight: 600;
+      font-size: 0.78rem;
+      font-weight: 500;
       cursor: pointer;
     }
 
-    .outcomes-toggle:hover { text-decoration: underline; }
+    .outcomes-toggle:hover { color: var(--text); }
   </style>
 </head>
 <body>
   <header>
     <div class="bar">
-      <div>
-        <h1 id="channel-title">Kalshi Watch</h1>
-        <div class="meta" id="channel-meta">
-          正在读取 <a href="/feed.xml">feed.xml</a> …
+      <div class="brand">
+        <div>
+          <h1>Kalshi Watch</h1>
+          <p class="tagline">BOJ · JPY · Yen markets</p>
         </div>
+        <a class="rss-link" href="/feed.xml">RSS ↗</a>
       </div>
       <div class="controls">
-        <input id="q" type="search" placeholder="搜索事件、outcome、ticker" autocomplete="off">
-        <button id="reload" type="button">重新加载</button>
+        <input id="q" type="search" placeholder="Search markets..." autocomplete="off">
+        <button id="reload" class="reload" type="button" aria-label="Reload">↻</button>
       </div>
     </div>
   </header>
@@ -394,8 +373,6 @@
     const TAIL_ABOVE_RE = /^(-?\d+(?:\.\d+)?)\s+or\s+above/i;
 
     const listEl = document.getElementById("list");
-    const titleEl = document.getElementById("channel-title");
-    const metaEl = document.getElementById("channel-meta");
     const queryEl = document.getElementById("q");
 
     let items = [];
@@ -496,7 +473,7 @@
         return {
           value: last,
           kind: "last",
-          note: "Last",
+          note: "LAST",
         };
       }
 
@@ -654,9 +631,9 @@
       return { fields, markets: sortMarkets(markets) };
     }
 
-    function chip(label, value, className) {
+    function metric(label, value, className) {
       if (value == null || value === "") return "";
-      return `<span class="chip ${className || ""}">${escapeHtml(label)} <b>${escapeHtml(value)}</b></span>`;
+      return `<span class="metric ${className || ""}">${escapeHtml(label)} <b>${escapeHtml(value)}</b></span>`;
     }
 
     function renderOutcome(market) {
@@ -678,9 +655,9 @@
             <div class="${fillClass}" style="width:${width}%"></div>
           </div>
           <div class="prices">
-            ${chip("Bid", market.bid == null ? null : formatPercent(market.bid), "bid")}
-            ${chip("Ask", market.ask == null ? null : formatPercent(market.ask), "ask")}
-            ${chip("Vol", formatVolume(market.volume))}
+            ${metric("Bid", market.bid == null ? null : formatPercent(market.bid), "bid")}
+            ${metric("Ask", market.ask == null ? null : formatPercent(market.ask))}
+            ${metric("Vol", formatVolume(market.volume))}
           </div>
           ${market.ticker ? `<div class="ticker-hint">${escapeHtml(market.ticker)}</div>` : ""}
         </li>
@@ -711,8 +688,8 @@
             data-expand-key="${escapeHtml(itemKey)}"
             aria-expanded="${isExpanded ? "true" : "false"}"
           >${isExpanded
-            ? "Show less ▴"
-            : `Show all ${markets.length} outcomes ▾`}</button>`
+            ? "Show less ↑"
+            : `View all ${markets.length} outcomes ↓`}</button>`
         : "";
 
       return `
@@ -767,12 +744,10 @@
           <p>RSS 尚未生成。Worker 的 KV 里还没有 <code>feed.xml</code>。</p>
           ${scheduledTriggerHint()}
         </div>`;
-      metaEl.innerHTML = `等待首次生成 · <a href="${FEED_URL}">feed.xml</a>`;
     }
 
     async function loadFeed() {
       listEl.innerHTML = `<div class="status">正在读取 <code>${escapeHtml(FEED_URL)}</code> …</div>`;
-      metaEl.innerHTML = `正在读取 <a href="${FEED_URL}">feed.xml</a> …`;
 
       try {
         const response = await fetch(FEED_URL, { cache: "no-store" });
@@ -792,8 +767,6 @@
         const channel = xml.querySelector("channel");
         if (!channel) throw new Error("RSS 缺少 channel");
 
-        titleEl.textContent = textOf(channel, "title") || "Kalshi Watch";
-        const description = textOf(channel, "description");
         const itemNodes = [...channel.getElementsByTagName("item")];
 
         items = itemNodes.map((node) => {
@@ -812,12 +785,6 @@
           };
         });
 
-        metaEl.innerHTML = [
-          description,
-          `${items.length} 条事件`,
-          `<a href="${FEED_URL}">RSS</a>`,
-        ].filter(Boolean).join(" · ");
-
         if (!items.length) {
           listEl.innerHTML = `<div class="empty">feed 里没有匹配的事件。检查 Worker 配置中的 keywords。</div>`;
           return;
@@ -827,7 +794,6 @@
       } catch (error) {
         const hint = window.location.protocol === "file:" ? `<p>${fileProtocolHint()}</p>` : "";
         listEl.innerHTML = `<div class="status error"><p>${escapeHtml(error.message)}</p>${hint}</div>`;
-        metaEl.innerHTML = `读取失败 · <a href="${FEED_URL}">feed.xml</a>`;
       }
     }
 
