@@ -5,13 +5,12 @@ from urllib.parse import urlparse
 
 from workers import Response, WorkerEntrypoint
 
-from kalshi_rss import FEED_KV_KEY
+FEED_KV_KEY = "feed.xml"
 
 
 class Default(WorkerEntrypoint):
     async def fetch(self, request):
-        parsed = urlparse(request.url)
-        path = parsed.path
+        path = urlparse(request.url).path
 
         if path == "/feed.xml":
             feed = await self.env.RSS_KV.get(FEED_KV_KEY)
