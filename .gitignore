@@ -5,3 +5,4 @@ __pycache__
 .wrangler
 .venv-workers
 python_modules
+feed.xml
