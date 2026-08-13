@@ -5,6 +5,7 @@ import os
 import re
 import sys
 import tempfile
+import time
 import xml.etree.ElementTree as ET
 from datetime import datetime, timezone
 from email.utils import format_datetime
@@ -20,6 +21,10 @@ KALSHI_MARKETS_URL = "https://kalshi.com/markets"
 TITLE_FIELDS = ("title", "subtitle")
 TICKER_FIELDS = ("ticker", "event_ticker")
 EVENTS_PAGE_LIMIT_MAX = 200
+FETCH_MAX_RETRIES = 8
+FETCH_RETRY_BASE_SECONDS = 1.0
+FETCH_RETRY_MAX_SECONDS = 30.0
+SERIES_PAUSE_SECONDS = 0.75
 
 
 def _word_boundary_pattern(keyword: str) -> re.Pattern[str]:
@@ -274,6 +279,33 @@ def events_api_url(api_url: str) -> str:
     return f"{markets_url.rstrip('/')}/events"
 
 
+def _get_json(
+    session,
+    url: str,
+    params: dict[str, object],
+    timeout: float,
+) -> dict[str, Any]:
+    delay = FETCH_RETRY_BASE_SECONDS
+
+    for attempt in range(FETCH_MAX_RETRIES + 1):
+        response = session.get(url, params=params, timeout=timeout)
+        status = getattr(response, "status_code", None)
+        if status == 429:
+            if attempt >= FETCH_MAX_RETRIES:
+                response.raise_for_status()
+            time.sleep(delay)
+            delay = min(delay * 2, FETCH_RETRY_MAX_SECONDS)
+            continue
+
+        response.raise_for_status()
+        payload = response.json()
+        if not isinstance(payload, dict):
+            raise ValueError(f"Kalshi API returned non-object JSON for {url}")
+        return payload
+
+    raise RuntimeError(f"Kalshi API retries exhausted for {url}")
+
+
 def _paginated_list(
     session,
     url: str,
@@ -294,9 +326,7 @@ def _paginated_list(
         if cursor:
             params["cursor"] = cursor
 
-        response = session.get(url, params=params, timeout=timeout)
-        response.raise_for_status()
-        payload = response.json()
+        payload = _get_json(session, url, params, timeout)
         page_items = payload.get(result_key) or []
         if isinstance(page_items, list):
             items.extend(item for item in page_items if isinstance(item, dict))
@@ -382,7 +412,9 @@ def collect_keyword_events(
         ]
 
     events_by_ticker: dict[str, dict[str, Any]] = {}
-    for series in matched_series:
+    for series_index, series in enumerate(matched_series):
+        if series_index > 0:
+            time.sleep(SERIES_PAUSE_SECONDS)
         series_ticker = str(series.get("ticker") or "").strip()
         if not series_ticker:
             continue

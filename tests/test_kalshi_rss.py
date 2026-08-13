@@ -2,6 +2,7 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 import pytest
+import requests
 
 from kalshi_rss import (
     event_description,
@@ -461,16 +462,44 @@ def test_write_atomic_replaces_file_with_valid_xml(tmp_path: Path):
 
 
 class FakeResponse:
-    def __init__(self, payload, error=None):
+    def __init__(self, payload, error=None, status_code=200):
         self._payload = payload
         self._error = error
+        self.status_code = status_code
 
     def raise_for_status(self):
         if self._error is not None:
             raise self._error
+        if self.status_code >= 400:
+            raise requests.HTTPError(f"{self.status_code} Client Error")
 
     def json(self):
         return self._payload
+
+
+def test_get_json_retries_on_429(monkeypatch):
+    from kalshi_rss import _get_json
+
+    sleeps: list[float] = []
+    monkeypatch.setattr("kalshi_rss.time.sleep", sleeps.append)
+
+    session = FakeSession(
+        [
+            FakeResponse({}, status_code=429),
+            FakeResponse({"events": [{"event_ticker": "A"}], "cursor": ""}),
+        ]
+    )
+
+    payload = _get_json(
+        session,
+        "https://example.test/events",
+        {"limit": 200},
+        timeout=5,
+    )
+
+    assert payload["events"][0]["event_ticker"] == "A"
+    assert len(session.calls) == 2
+    assert sleeps == [1.0]
 
 
 class FakeSession:
