@@ -411,7 +411,7 @@
       if (origin.includes("localhost") || origin.includes("127.0.0.1")) {
         return `<p>本地可先生成再写入 KV：</p><code>uv run python kalshi_rss.py && uv run pywrangler kv key put feed.xml --path=feed.xml --binding=RSS_KV</code>`;
       }
-      return `<p>Feed 由 GitHub Actions「Refresh Feed」每小时的第 7、37 分钟更新；也可在 Actions 里手动 Run workflow。</p>`;
+      return `<p>Feed 由 Cloudflare Cron（UTC :07 / :37）触发 GitHub Actions「Refresh Feed」更新；也可在 Actions 里手动 Run workflow。</p>`;
     }
 
     function renderPendingFeed() {

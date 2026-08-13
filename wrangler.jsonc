@@ -17,6 +17,16 @@
 			"id": "d11725654eca46699d468f3691a85507"
 		}
 	],
+	"vars": {
+		"GITHUB_REPO": "motoish/kalshirss",
+		"GITHUB_WORKFLOW": "refresh-feed.yml",
+		"GITHUB_REF": "main"
+	},
+	"triggers": {
+		"crons": [
+			"7,37 * * * *"
+		]
+	},
 	"routes": [
 		{
 			"pattern": "rss.motoish.dev",
