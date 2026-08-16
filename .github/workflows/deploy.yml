@@ -4,6 +4,14 @@ on:
   push:
     branches:
       - main
+    paths:
+      - "src/**"
+      - "public/**"
+      - "wrangler.jsonc"
+      - "pyproject.toml"
+      - "uv.lock"
+      - "tests/**"
+      - ".github/workflows/deploy.yml"
   workflow_dispatch:
 
 permissions:

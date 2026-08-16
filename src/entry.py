@@ -32,19 +32,19 @@ class Default(WorkerEntrypoint):
     async def scheduled(self, controller, env, ctx):
         # Cloudflare Cron is the clock; GitHub Actions still pulls Kalshi
         # (Cloudflare egress hits Kalshi rate limits).
-        await self._dispatch_github_refresh(env)
+        await self._dispatch_github_refresh(self.env, cron=getattr(controller, "cron", None))
 
-    async def _dispatch_github_refresh(self, env) -> None:
-        token = getattr(env, "GITHUB_TOKEN", None)
+    async def _dispatch_github_refresh(self, env, cron: str | None = None) -> None:
+        try:
+            token = env.GITHUB_TOKEN
+        except AttributeError:
+            token = None
         if not token:
-            print("GITHUB_TOKEN secret is missing; skip workflow dispatch")
-            return
+            raise RuntimeError("GITHUB_TOKEN secret is missing; cannot dispatch workflow")
 
-        repo = str(getattr(env, "GITHUB_REPO", None) or "motoish/kalshirss").strip()
-        workflow = str(
-            getattr(env, "GITHUB_WORKFLOW", None) or "refresh-feed.yml"
-        ).strip()
-        ref = str(getattr(env, "GITHUB_REF", None) or "main").strip()
+        repo = str(env.GITHUB_REPO).strip() or "motoish/kalshirss"
+        workflow = str(env.GITHUB_WORKFLOW).strip() or "refresh-feed.yml"
+        ref = str(env.GITHUB_REF).strip() or "main"
         url = (
             f"https://api.github.com/repos/{repo}/actions/workflows/{workflow}/dispatches"
         )
