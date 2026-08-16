@@ -90,27 +90,24 @@ The included `wrangler.jsonc` targets this project's Cloudflare account. Before 
 
 - `account_id` and `kv_namespaces[].id`
 - `routes[].pattern`, or remove the custom route
-- `vars.GITHUB_REPO` and, if needed, `GITHUB_WORKFLOW` or `GITHUB_REF`
 
-After authenticating Wrangler locally, deploy the Worker and add a `GITHUB_TOKEN` Worker secret with permission to dispatch the configured GitHub Actions workflow:
+After authenticating Wrangler locally, deploy the Worker:
 
 ```bash
 uv run pywrangler deploy
-uv run pywrangler secret put GITHUB_TOKEN
 ```
 
-For GitHub Actions deployments and feed uploads, add `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` as repository secrets. Pushing to `main` runs the deployment workflow; the refresh workflow is dispatched by Cloudflare Cron.
+For GitHub Actions deployments and feed uploads, add `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` as repository secrets. Pushing to `main` runs the deployment workflow. GitHub Actions schedules the refresh workflow on the default branch.
 
 The feed refreshes twice per hour:
 
 ```text
-Cloudflare Cron (:07 / :37 UTC)
-→ dispatch refresh-feed.yml
-→ GitHub Actions generates feed.xml
+GitHub Actions Cron (:07 / :37 UTC)
+→ refresh-feed.yml generates feed.xml
 → upload to Cloudflare KV
 ```
 
-Cloudflare only schedules the refresh because its egress IPs are easily rate-limited by Kalshi. GitHub Actions performs the API requests. To refresh manually:
+The Cloudflare Worker serves the site and reads the feed from KV. GitHub Actions performs the Kalshi API requests to avoid Cloudflare egress rate limits. You can also run the `Refresh Feed` workflow manually, or refresh from your machine:
 
 ```bash
 uv run python kalshi_rss.py

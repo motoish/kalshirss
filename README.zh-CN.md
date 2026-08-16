@@ -90,27 +90,24 @@ uv run pywrangler dev
 
 - `account_id` 和 `kv_namespaces[].id`
 - `routes[].pattern`，或删除自定义域名配置
-- `vars.GITHUB_REPO`，必要时也修改 `GITHUB_WORKFLOW` 或 `GITHUB_REF`
 
-在本地完成 Wrangler 认证后，部署 Worker，并添加能够触发目标 GitHub Actions workflow 的 Worker Secret `GITHUB_TOKEN`：
+在本地完成 Wrangler 认证后部署 Worker：
 
 ```bash
 uv run pywrangler deploy
-uv run pywrangler secret put GITHUB_TOKEN
 ```
 
-GitHub Actions 部署和上传 Feed 需要仓库 Secret `CLOUDFLARE_API_TOKEN` 与 `CLOUDFLARE_ACCOUNT_ID`。推送到 `main` 会运行部署 workflow；刷新 workflow 则由 Cloudflare Cron 触发。
+GitHub Actions 部署和上传 Feed 需要仓库 Secret `CLOUDFLARE_API_TOKEN` 与 `CLOUDFLARE_ACCOUNT_ID`。推送到 `main` 会运行部署 workflow；刷新 workflow 由 GitHub Actions 在默认分支上定时运行。
 
 Feed 每小时刷新两次：
 
 ```text
-Cloudflare Cron（UTC :07 / :37）
-→ 触发 refresh-feed.yml
-→ GitHub Actions 生成 feed.xml
+GitHub Actions Cron（UTC :07 / :37）
+→ refresh-feed.yml 生成 feed.xml
 → 上传到 Cloudflare KV
 ```
 
-Cloudflare 只负责定时触发，因为其出口 IP 容易被 Kalshi 限流；实际 API 请求由 GitHub Actions 发起。需要手动刷新时运行：
+Cloudflare Worker 只负责提供网页并从 KV 读取 Feed。为避免 Cloudflare 出口 IP 触发 Kalshi 限流，API 请求由 GitHub Actions 发起。也可以在 GitHub 上手动运行 `Refresh Feed` workflow，或在本机执行：
 
 ```bash
 uv run python kalshi_rss.py
