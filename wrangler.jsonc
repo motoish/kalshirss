@@ -17,19 +17,8 @@
 			"id": "d11725654eca46699d468f3691a85507"
 		}
 	],
-	"secrets": {
-		"required": ["GITHUB_TOKEN"]
-	},
-	"vars": {
-		"GITHUB_REPO": "motoish/kalshirss",
-		"GITHUB_WORKFLOW": "refresh-feed.yml",
-		"GITHUB_REF": "main"
-	},
 	"triggers": {
-		"crons": [
-			"7 * * * *",
-			"37 * * * *"
-		]
+		"crons": []
 	},
 	"routes": [
 		{

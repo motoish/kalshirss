@@ -1,10 +1,9 @@
 from __future__ import annotations
 
-import json
 from http import HTTPStatus
 from urllib.parse import urlparse
 
-from workers import Response, WorkerEntrypoint, fetch
+from workers import Response, WorkerEntrypoint
 
 FEED_KV_KEY = "feed.xml"
 
@@ -28,42 +27,3 @@ class Default(WorkerEntrypoint):
             )
 
         return await self.env.ASSETS.fetch(request)
-
-    async def scheduled(self, controller, env, ctx):
-        # Cloudflare Cron is the clock; GitHub Actions still pulls Kalshi
-        # (Cloudflare egress hits Kalshi rate limits).
-        await self._dispatch_github_refresh(self.env, cron=getattr(controller, "cron", None))
-
-    async def _dispatch_github_refresh(self, env, cron: str | None = None) -> None:
-        try:
-            token = env.GITHUB_TOKEN
-        except AttributeError:
-            token = None
-        if not token:
-            raise RuntimeError("GITHUB_TOKEN secret is missing; cannot dispatch workflow")
-
-        repo = str(env.GITHUB_REPO).strip() or "motoish/kalshirss"
-        workflow = str(env.GITHUB_WORKFLOW).strip() or "refresh-feed.yml"
-        ref = str(env.GITHUB_REF).strip() or "main"
-        url = (
-            f"https://api.github.com/repos/{repo}/actions/workflows/{workflow}/dispatches"
-        )
-
-        response = await fetch(
-            url,
-            method="POST",
-            headers={
-                "Authorization": f"Bearer {token}",
-                "Accept": "application/vnd.github+json",
-                "X-GitHub-Api-Version": "2022-11-28",
-                "Content-Type": "application/json",
-                "User-Agent": "kalshi-rss-worker",
-            },
-            body=json.dumps({"ref": ref}),
-        )
-        if response.status >= 300:
-            body = await response.text()
-            raise RuntimeError(
-                f"GitHub workflow dispatch failed ({response.status}): {body[:300]}"
-            )
-        print(f"Dispatched {workflow} on {repo}@{ref}")
