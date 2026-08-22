@@ -132,6 +132,14 @@ main {
   -webkit-overflow-scrolling: touch;
 }
 
+main > :first-child {
+  margin-left: auto;
+}
+
+main > :last-child {
+  margin-right: auto;
+}
+
 main > .status,
 main > .empty {
   flex: 1 1 auto;
