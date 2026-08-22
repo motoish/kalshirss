@@ -389,17 +389,25 @@
       `;
     }
 
-    function applyFilter() {
+    function applyFilter(options = {}) {
       const needle = queryEl.value.trim().toLowerCase();
       const visible = needle
         ? items.filter((item) => item.searchText.includes(needle))
         : items;
+      const scrollLeft = options.preserveScroll ? listEl.scrollLeft : 0;
+      const articleScrollTop = options.articleScrollTop ?? 0;
+      const expandKey = options.expandKey || "";
 
       if (!visible.length) {
         listEl.innerHTML = `<div class="empty">没有匹配「${escapeHtml(queryEl.value)}」的事件。</div>`;
         return;
       }
       listEl.innerHTML = visible.map(renderItem).join("");
+      listEl.scrollLeft = scrollLeft;
+      if (!expandKey) return;
+      const nextButton = listEl.querySelector(`[data-expand-key="${CSS.escape(expandKey)}"]`);
+      const nextArticle = nextButton?.closest("article");
+      if (nextArticle) nextArticle.scrollTop = articleScrollTop;
     }
 
     function fileProtocolHint() {
@@ -486,8 +494,26 @@
       if (!key) return;
       if (expandedItems.has(key)) expandedItems.delete(key);
       else expandedItems.add(key);
-      applyFilter();
+      applyFilter({
+        preserveScroll: true,
+        expandKey: key,
+        articleScrollTop: button.closest("article")?.scrollTop ?? 0,
+      });
     });
+    listEl.addEventListener("wheel", (event) => {
+      if (event.ctrlKey || Math.abs(event.deltaY) <= Math.abs(event.deltaX)) return;
+
+      const card = event.target.closest("article");
+      if (card && card.scrollHeight > card.clientHeight + 1) {
+        const isAtTop = card.scrollTop <= 0;
+        const isAtBottom = card.scrollTop + card.clientHeight >= card.scrollHeight - 1;
+        const isScrollingInside = (event.deltaY < 0 && !isAtTop) || (event.deltaY > 0 && !isAtBottom);
+        if (isScrollingInside) return;
+      }
+
+      event.preventDefault();
+      listEl.scrollLeft += event.deltaY;
+    }, { passive: false });
 
     loadFeed();
   </script>

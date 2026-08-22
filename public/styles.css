@@ -12,9 +12,16 @@
 
 * { box-sizing: border-box; }
 
+html, body {
+  height: 100%;
+  height: 100dvh;
+}
+
 body {
   margin: 0;
-  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   font: 14px/1.4 Inter, "Segoe UI", Helvetica, Arial, sans-serif;
   font-feature-settings: "tnum" 1;
   letter-spacing: -0.011em;
@@ -23,16 +30,14 @@ body {
 }
 
 header {
-  position: sticky;
-  top: 0;
+  flex: 0 0 auto;
   z-index: 10;
   background: var(--bg);
   border-bottom: 1px solid var(--border);
 }
 
 .bar {
-  max-width: 1180px;
-  margin: 0 auto;
+  margin: 0;
   padding: 16px 20px 14px;
   display: grid;
   gap: 12px;
@@ -113,25 +118,24 @@ button.reload:hover {
 }
 
 main {
-  max-width: 1180px;
-  margin: 0 auto;
-  padding: 16px 20px 48px;
-  display: grid;
-  grid-template-columns: 1fr;
+  flex: 1 1 auto;
+  min-height: 0;
+  margin: 0;
+  padding: 16px 20px 20px;
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
   gap: 12px;
-  align-items: start;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
 }
 
-@media (min-width: 761px) {
-  main {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  main > .status,
-  main > .empty,
-  article.categorical {
-    grid-column: 1 / -1;
-  }
+main > .status,
+main > .empty {
+  flex: 1 1 auto;
+  min-width: min(640px, calc(100vw - 40px));
 }
 
 .status, .empty {
@@ -153,13 +157,22 @@ code {
 }
 
 article {
+  flex: 0 0 min(400px, calc(100vw - 40px));
+  width: min(400px, calc(100vw - 40px));
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
   display: grid;
+  align-content: start;
   gap: 12px;
   padding: 16px 16px 12px;
   border: 1px solid var(--border);
   border-radius: 8px;
   background: var(--bg-card);
-  min-width: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  container-type: inline-size;
 }
 
 article h2 {
@@ -276,7 +289,7 @@ article h2 {
 
 .metric.bid b { color: var(--accent); }
 
-@media (max-width: 760px) {
+@container (max-width: 420px) {
   .outcome-top {
     flex-wrap: wrap;
   }
